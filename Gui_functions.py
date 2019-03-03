@@ -60,11 +60,21 @@ def set_course_name(course_info, course_name):
     course_name.set(tuple(course_info.keys()))
 
 
-def set_file_name(course_list, course_info, file_name):
+def set_attr_name(course_list, course_info, name_list):
     try:
         name = course_list.get(course_list.curselection())
     except Exception:
         pass
     else:
-        file_name.set(tuple(course_info[name].keys()))
+        name_list.set(tuple(course_info[name].keys()))
         return name
+
+def set_file_name(file_attr, course_info, file_name, name):
+    try:
+        list = file_attr.get(file_attr.curselection())
+    except Exception:
+        pass
+    else:
+        if course_info[name][list]:
+            file_name.set(tuple(course_info[name][list].keys()))
+            return list

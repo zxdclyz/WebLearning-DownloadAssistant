@@ -42,22 +42,28 @@ def web_login(session, user_info):
 
     # 处理course_url里的网址，获得课程的编号，来拉取课程文件信息
     # 这里得到的course_json是三层嵌套的列表，由每节课的文件资料组成第一层列表，每节课组成第二层，所有课组成第三层
-    course_json = []
-    for url in course_url:
+    def get_course_info():
         json_url = 'http://learn2018.tsinghua.edu.cn/b/wlxt/kj/wlkc_kjxxb/student/kjxxb/' \
-                  + url.split('=')[1] + '/sjqy_' + url.split('=')[1][11:] + '1'
-        course_json.append(session.get(json_url).json()['object'])
-
-    # 对上面的内容进行处理，最后得到一个字典，键是每节课的名字，值为字典，其键是文件名，值是文件下载地址
-    course_download = []
-    for name in course_json:
+                   + url.split('=')[1] + '/sjqy_' + url.split('=')[1][11:] + str(n + 1)
+        course_json = session.get(json_url).json()['object']
         dict_of_course = {}
-        if name:
-            for file in name:
+        if course_json:
+            for file in course_json:
                 dict_of_course[file[1]] = 'http://learn2018.tsinghua.edu.cn/b/wlxt/kj/wlkc_kjxxb' \
-                                         '/student/downloadFile?sfgk=0&wjid=' + file[-3]
-        course_download.append(dict_of_course)
-    course_info = dict(zip(course_name, course_download))
+                                          '/student/downloadFile?sfgk=0&wjid=' + file[-3]
+            return dict_of_course
+
+    # 新的修改：获取文件分类
+    course_attribute = []
+    for url in course_url:
+        attr_url = 'http://learn.tsinghua.edu.cn/b/wlxt/kj/wlkc_kjflb/student/pageList?wlkcid=' \
+                   + url.split('=')[1]
+        attr_list = session.get(attr_url).json()['object']['rows']
+        dict_of_list = {}
+        for n in range(len(attr_list)):
+            dict_of_list[attr_list[n]['bt']] = get_course_info()
+        course_attribute.append(dict_of_list)
+    course_info = dict(zip(course_name, course_attribute))
     return course_info
 # 因为网络学堂更新的问题，2018-2019-1学期的有些课程的文件无法下载(其实可以，但是我懒)他们对应的字典是空的
 
