@@ -1,4 +1,4 @@
-# WebLearning-DownloadHelper
+# WebLearning-DownloadAssistant
 
 ## 使用注意事项 :exclamation:
 
