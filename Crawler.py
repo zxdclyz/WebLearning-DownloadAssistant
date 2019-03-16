@@ -1,5 +1,7 @@
 # -*- coding:utf-8 -*-
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
 import requests
 import os
@@ -16,7 +18,7 @@ def web_login(session, user_info):
     driver.find_element_by_name('i_user').send_keys(user_info['name'])
     driver.find_element_by_name('i_pass').send_keys(user_info['password'])
     driver.find_element_by_id('loginButtonId').click()
-    sleep(5)
+    WebDriverWait(driver, 10).until(EC.title_is('清华大学网络学堂'))
 
     # 现在还不到第二学期，先加一步手动换到第二学期的界面
     # driver.find_element_by_css_selector("[class= '#course2']").click()

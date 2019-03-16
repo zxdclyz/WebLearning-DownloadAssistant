@@ -52,8 +52,66 @@ def sign_up(window):
     entry_usr_pwd_confirm = tk.Entry(window_sign_up, textvariable=file_path)
     entry_usr_pwd_confirm.place(x=130, y=90)
 
-    btn_comfirm_sign_up = tk.Button(window_sign_up, text='Sign up', command=lambda: sign_up_confirm())
-    btn_comfirm_sign_up.place(x=180, y=120)
+    btn_confirm_sign_up = tk.Button(window_sign_up, text='Sign up', command=lambda: sign_up_confirm())
+    btn_confirm_sign_up.place(x=180, y=120)
+
+
+def show_me_list(list_tobe_download, window):
+    window_list = tk.Toplevel(window)
+    window_list.geometry('500x400')
+    window_list.title('Your download list')
+    element_of_list = tk.StringVar()
+
+    def refresh_list():
+        temp = []
+        for course in list_tobe_download.keys():
+            for attr in list_tobe_download[course].keys():
+                for name in list_tobe_download[course][attr]:
+                    temp.append(name + '/' + course + '/' + attr)
+        element_of_list.set(tuple(temp))
+
+    def delete_element():
+        try:
+            to_be_delete = []
+            for index in a_list.curselection():
+                to_be_delete.append(a_list.get(index))  # 防止下载键误触
+        except Exception:
+            pass
+        else:
+            for info in to_be_delete:
+                name = info.split('/')[1]
+                attr = info.split('/')[2]
+                file = info.split('/')[0]
+                list_tobe_download[name][attr].remove(file)
+            refresh_list()
+
+    # 初始化列表内容
+    refresh_list()
+
+    # 主要列表
+    a_list = tk.Listbox(window_list, listvariable=element_of_list, width=55, height=20, selectmode=tk.MULTIPLE)
+    a_list.place(x=20, y=20)
+
+    # 删除按键
+    delete_button = tk.Button(window_list, height=2, width=8, text='移除', command=delete_element)
+    delete_button.place(x=420, y=180)
+
+
+def auto_detect(list_tobe_download, course_info, file_downloaded):
+    flag = messagebox.askokcancel('Warning', '此操作会清空目前的下载列表')
+    if flag:
+        list_tobe_download.clear()
+        for name_auto in course_info.keys():
+            if name_auto not in list_tobe_download.keys():
+                list_tobe_download[name_auto] = {}
+            for attr_auto in course_info[name_auto].keys():
+                if attr_auto not in list_tobe_download[name_auto].keys():
+                    list_tobe_download[name_auto][attr_auto] = []
+                    if course_info[name_auto][attr_auto]:
+                        for file_auto in course_info[name_auto][attr_auto]:
+                            if file_auto not in file_downloaded:
+                                list_tobe_download[name_auto][attr_auto].append(file_auto)
+        messagebox.showinfo('Yeah', '检测完成，未下载文件已添加到列表')
 
 
 def set_course_name(course_info, course_name):
@@ -78,3 +136,5 @@ def set_file_name(file_attr, course_info, file_name, name):
         if course_info[name][list]:
             file_name.set(tuple(course_info[name][list].keys()))
             return list
+        else:
+            file_name.set(())
