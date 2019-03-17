@@ -51,13 +51,18 @@ def download():
     else:
         checked_files = file_check(files)
         if checked_files:
+            temp = 0
+            process_bar["maximum"] = len(checked_files)
             for file in checked_files:
                 url = course_info[name][attr][file]
                 path = user_info['path'] + '\\' + name + '\\' + attr
                 download_check(path)
                 file_download(session, file, url, path)
                 file_downloaded.append(file)
+                temp += 1
+                process_int.set(temp)
             messagebox.showinfo('Ha', '下载完成')
+            process_int.set(0)
         else:
             messagebox.showinfo('OhOh', '没有需要下载的文件')
 
@@ -140,6 +145,12 @@ auto_detect_button.place(x=525, y=180)
 # 查看列表按键
 check_download_list_button = tk.Button(window, height=1, width=8, text='查看列表'
                                        , command=lambda :show_me_list(list_tobe_download, window))
+
+# 试加入进度条
+process_int = tk.IntVar()
+tk.Label(window, text='下载进度').place(x=190,y=20)
+process_bar = ttk.Progressbar(window, length=200, mode="determinate", variable=process_int)
+process_bar.place(x=250, y=20)
 
 # 创建课程列表
 course_name = tk.StringVar()
