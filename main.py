@@ -16,6 +16,13 @@ except FileNotFoundError:
         file_downloaded = []
         json.dump(file_downloaded, fp)
 
+try:
+    with open('last_update.json', 'r') as fp:
+        last_update = json.load(fp)
+except FileNotFoundError:
+    with open('last_update.json', 'w') as fp:
+        last_update = []
+        json.dump(file_downloaded, fp)
 
 # 设置按键要调用的登录函数
 def login():
@@ -49,17 +56,21 @@ def download():
     except Exception:
         pass
     else:
-        checked_files = file_check(files)
-        if checked_files:
-            for file in checked_files:
-                url = course_info[name][attr][file]
-                path = user_info['path'] + '\\' + name + '\\' + attr
-                download_check(path)
-                file_download(session, file, url, path)
-                file_downloaded.append(file)
+        download_flag = 0
+        path = user_info['path'] + '\\' + name + '\\' + attr
+        download_check(path)
+        for file in files:
+            url = course_info[name][attr][file]
+            if file_download(session, file, url, path):
+                download_flag = 1
+                if file not in file_downloaded:
+                    file_downloaded.append(file)
+            else:
+                messagebox.showinfo('OhOh', file + '下载过了！')
+        if download_flag :
             messagebox.showinfo('Ha', '下载完成')
         else:
-            messagebox.showinfo('OhOh', '没有需要下载的文件')
+            messagebox.showinfo('OhOh', '没有要下载的文件')
 
 
 def download_plus():
@@ -67,28 +78,20 @@ def download_plus():
     for name_plus in list_tobe_download.keys():
         for attr_plus in list_tobe_download[name_plus].keys():
             files = list_tobe_download[name_plus][attr_plus]
-            checked_files = file_check(files)
-            if checked_files:
-                flag = 1
-                for file in checked_files:
-                    url = course_info[name_plus][attr_plus][file]
-                    path = user_info['path'] + '\\' + name_plus + '\\' + attr_plus
-                    download_check(path)
-                    file_download(session, file, url, path)
-                    file_downloaded.append(file)
+            path = user_info['path'] + '\\' + name_plus + '\\' + attr_plus
+            download_check(path)
+            for file in files:
+                url = course_info[name_plus][attr_plus][file]
+                if file_download(session, file, url, path):
+                    flag = 1
+                    if file not in file_downloaded:
+                        file_downloaded.append(file)
+                else:
+                    messagebox.showinfo('OhOh', file + '下载过了！')
     if flag==0:
         messagebox.showinfo('OhOh', '没有需要下载的文件')
     else:
         messagebox.showinfo('Ha', '下载完成')
-
-
-def file_check(files):
-    file_downloaded_show = [x for x in files if x in file_downloaded]
-    file_to_download = [y for y in files if y not in file_downloaded_show]
-    if file_downloaded_show:
-        show = ','.join(file_downloaded_show)
-        messagebox.showinfo('OhOh', show + '已经下载过了')
-    return file_to_download
 
 
 def add_to_download_list():
@@ -113,7 +116,7 @@ def add_to_download_list():
 # 以下为ui的主要内容
 window = tk.Tk()
 
-window.title('网络学堂下载助手')
+window.title('THU网络学堂下载助手')
 window.geometry('600x430')
 
 # 登录按键
@@ -137,6 +140,19 @@ auto_detect_button = tk.Button(window, height=1, width=8, text='自动检测'
                                , command=lambda :auto_detect(list_tobe_download, course_info, file_downloaded))
 auto_detect_button.place(x=525, y=180)
 
+#查看更新的文件按键
+update_detect_button = tk.Button(window, height=1, width=8, text='检测更新'
+                                 , command=lambda :auto_update(list_tobe_download, course_info, last_update))
+update_detect_button.place(x=525, y=215)
+
+# 清空列表按键
+delete_list_button = tk.Button(window, height=1, width=8, text='清空列表'
+                               , command=lambda :delete_list(list_tobe_download))
+delete_list_button.place(x=525, y=250)
+
+# 帮助按键
+help_button = tk.Button(window, height=1, width=8, text='帮助', command=lambda :show_me_help(window))
+help_button.place(x=525, y=285)
 # 查看列表按键
 check_download_list_button = tk.Button(window, height=1, width=8, text='查看列表'
                                        , command=lambda :show_me_list(list_tobe_download, window))
@@ -165,3 +181,5 @@ window.mainloop()
 
 with open('file_downloaded.json', 'w') as fp:
     json.dump(file_downloaded, fp)
+
+refresh_last_update(course_info, last_update)

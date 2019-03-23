@@ -2,6 +2,7 @@
 
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import ttk
 import json
 
 def login_check(window):
@@ -97,8 +98,21 @@ def show_me_list(list_tobe_download, window):
     delete_button.place(x=420, y=180)
 
 
+def show_me_help(window):
+    window_help = tk.Toplevel(window)
+    window_help.geometry('500x200')
+    window_help.title('Help')
+
+    helps = tk.Text(window_help)
+    helps.pack()
+    helps.insert(1.0, '有关使用说明：十分抱歉我没有来得及在程序中植入使用说明，请查看github中的README'+
+                              '\nhttps://github.com/zxdclyz/WebLearning-DownloadAssistant\n\n\n\n\n'+
+                              '声明：您的清华id和密码会被保存成文件，这是为了方便您的使用，'+
+                              '但我保证不会以任何方式获得这个文件')
+
+
 def auto_detect(list_tobe_download, course_info, file_downloaded):
-    flag = messagebox.askokcancel('Warning', '此操作会清空目前的下载列表')
+    flag = messagebox.askokcancel('Warning!', '此操作会清空目前的下载列表')
     if flag:
         list_tobe_download.clear()
         for name_auto in course_info.keys():
@@ -112,6 +126,39 @@ def auto_detect(list_tobe_download, course_info, file_downloaded):
                             if file_auto not in file_downloaded:
                                 list_tobe_download[name_auto][attr_auto].append(file_auto)
         messagebox.showinfo('Yeah', '检测完成，未下载文件已添加到列表')
+
+
+def refresh_last_update(course_info, last_update):
+    for name in course_info.keys():
+        for attr in course_info[name].keys():
+            if course_info[name][attr]:
+                for file in course_info[name][attr]:
+                    if file not in last_update:
+                        last_update.append(file)
+    with open('last_update.json', 'w') as fp:
+        json.dump(last_update, fp)
+
+
+def auto_update(list_tobe_download, course_info, last_update):
+    flag = messagebox.askokcancel('Warning!', '此操作会清空目前的下载列表')
+    if flag:
+        flag = 0
+        list_tobe_download.clear()
+        for name_auto in course_info.keys():
+            if name_auto not in list_tobe_download.keys():
+                list_tobe_download[name_auto] = {}
+            for attr_auto in course_info[name_auto].keys():
+                if attr_auto not in list_tobe_download[name_auto].keys():
+                    list_tobe_download[name_auto][attr_auto] = []
+                    if course_info[name_auto][attr_auto]:
+                        for file_auto in course_info[name_auto][attr_auto]:
+                            if file_auto not in last_update:
+                                flag = 1
+                                list_tobe_download[name_auto][attr_auto].append(file_auto)
+        if flag:
+            messagebox.showinfo('Yeah', '检测完成，上次使用之后更新的文件已添加到列表')
+        else:
+            messagebox.showinfo('OhOh', '没有更新的文件')
 
 
 def set_course_name(course_info, course_name):
@@ -138,3 +185,8 @@ def set_file_name(file_attr, course_info, file_name, name):
             return list
         else:
             file_name.set(())
+
+def delete_list(list_tobe_download):
+    flag = messagebox.askokcancel('Warning!', '此操作会清空目前的下载列表')
+    if flag:
+        list_tobe_download.clear()

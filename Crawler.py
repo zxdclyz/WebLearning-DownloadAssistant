@@ -72,13 +72,17 @@ def web_login(session, user_info):
 
 # 这个模块用来下载文件
 def file_download(session, name, url, path):
-    file_gotten = session.get(url)
-    # 这一句抓到了文件的格式，虽然语法很傻...
-    file_format = file_gotten.headers['Content-Disposition'].split('.')[-1].split('"')[0]
+    file_header = session.head(url)
+    file_format = file_header.headers['Content-Disposition'].split('.')[-1].split('"')[0]
     file_name = path + '\\' + name + '.' + file_format
-    with open(file_name, 'wb') as code:
-        code.write(file_gotten.content)
-
+    file_gotten = session.get(url)
+    flag = os.path.exists(file_name)
+    if not flag:
+        with open(file_name, 'wb') as code:
+            code.write(file_gotten.content)
+        return True
+    else:
+        return False
 
 def download_check(path):
     if not os.path.exists(path):
